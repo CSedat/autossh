@@ -1,0 +1,23 @@
+2024-03-10 12:29:05,321:INFO:Döngü süresi 5 saat olarak ayarlandý. Cihaz baðlantýlarý baþlatýlýyor...
+2024-03-10 12:29:05,321:INFO:10.35.17.254 cihazýna baðlanýlýyor...
+2024-03-10 12:29:07,438:INFO:10.35.17.254 cihazýna baðlanýrken hata oluþtu: TCP connection to device failed.
+
+Common causes of this problem are:
+1. Incorrect hostname or IP address.
+2. Wrong TCP port.
+3. Intermediate firewall blocking access.
+
+Device settings: accedian 10.35.17.254:22
+
+
+2024-03-10 12:29:07,442:INFO:10.35.14.254 cihazýna baðlanýlýyor...
+2024-03-10 12:29:09,623:INFO:10.35.14.254 cihazýna baðlanýrken hata oluþtu: TCP connection to device failed.
+
+Common causes of this problem are:
+1. Incorrect hostname or IP address.
+2. Wrong TCP port.
+3. Intermediate firewall blocking access.
+
+Device settings: casa_cmts 10.35.14.254:22
+
+
