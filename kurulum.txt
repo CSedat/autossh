@@ -1,2 +1,0 @@
-direkt çalıştırma -> pip install pyinstaller
-exe çıktısı alma  -> pyinstaller --onefile --windowed --icon=favicon.ico --name="Uygulama Çıktı Adı" main.py

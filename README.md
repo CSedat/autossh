@@ -12,3 +12,7 @@ Bu uygulamayı kullanabilmek için bilgisayarınızda Python'un yüklü olması 
 git clone https://github.com/CSedat/autossh.git
 cd autossh
 pip install -r requirements.txt
+pip install pyinstaller
+python main.py
+
+pyinstaller --onefile --windowed --icon=favicon.ico --name="Uygulama Çıktı Adı" main.py
