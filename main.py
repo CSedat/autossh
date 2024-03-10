@@ -7,7 +7,6 @@ import threading
 import time
 from datetime import datetime
 
-# Log konfigürasyonu
 logging.basicConfig(filename='logging.log', level=logging.INFO, 
                     format='%(asctime)s:%(levelname)s:%(message)s')
 
@@ -19,7 +18,6 @@ class AddDeviceDialog(simpledialog.Dialog):
         tk.Label(master, text="Kullanıcı Adı:").grid(row=2)
         tk.Label(master, text="Şifre:").grid(row=3)
 
-        # Desteklenen cihaz tipleri listesi
         self.device_types = [
             "a10", "accedian", "adtran_os", "adva_fsp150f2", "adva_fsp150f3", "alcatel_aos", "alcatel_sros", "allied_telesis_awplus", "apresia_aeos", "arista_eos", "arris_cer", "aruba_os", "aruba_osswitch", "aruba_procurve", "audiocode_66", "audiocode_72", "audiocode_shell", "avaya_ers", "avaya_vsp", "broadcom_icos", "brocade_fastiron", "brocade_fos", "brocade_netiron", "brocade_nos", "brocade_vdx", "brocade_vyos", "calix_b6", "casa_cmts", "cdot_cros", "centec_os", "checkpoint_gaia", "ciena_saos", "cisco_asa", "cisco_ftd", "cisco_ios", "cisco_nxos", "cisco_s200", "cisco_s300", "cisco_tp", "cisco_viptela", "cisco_wlc", "cisco_xe", "cisco_xr", "cloudgenix_ion", "coriant", "dell_dnos9", "dell_force10", "dell_isilon", "dell_os10", "dell_os6", "dell_os9", "dell_powerconnect", "dell_sonic", "digi_transport", "dlink_ds", "eltex", "eltex_esr", "endace", "enterasys", "ericsson_ipos", "ericsson_mltn63", "ericsson_mltn66", "extreme", "extreme_ers", "extreme_exos", "extreme_netiron", "extreme_nos", "extreme_slx", "extreme_tierra", "extreme_vdx", "extreme_vsp", "extreme_wing", "f5_linux", "f5_ltm", "f5_tmsh", "fiberstore_fsos", "flexvnf", "fortinet", "generic", "generic_termserver", "hillstone_stoneos", "hp_comware", "hp_procurve", "huawei", "huawei_olt", "huawei_smartax", "huawei_vrp", "huawei_vrpv8", "ipinfusion_ocnos", "juniper", "juniper_junos", "juniper_screenos", "keymile", "keymile_nos", "linux", "maipu", "mellanox", "mellanox_mlnxos", "mikrotik_routeros", "mikrotik_switchos", "mrv_lx", "mrv_optiswitch", "netapp_cdot", "netgear_prosafe", "netscaler", "nokia_srl", "nokia_sros", "oneaccess_oneos", "ovs_linux", "paloalto_panos", "pluribus", "quanta_mesh", "rad_etx", "raisecom_roap", "ruckus_fastiron", "ruijie_os", "sixwind_os", "sophos_sfos", "supermicro_smis", "teldat_cit", "tplink_jetstream", "ubiquiti_edge", "ubiquiti_edgerouter", "ubiquiti_edgeswitch", "ubiquiti_unifiswitch", "vyatta_vyos", "vyos", "watchguard_fireware", "yamaha", "zte_zxros", "zyxel_os",
         ]
@@ -33,7 +31,7 @@ class AddDeviceDialog(simpledialog.Dialog):
         self.password_entry = tk.Entry(master)
         self.password_entry.grid(row=3, column=1)
 
-        return self.device_type_entry  # İlk giriş alanına odaklan
+        return self.device_type_entry
 
     def apply(self):
         device_type = self.device_type_entry.get()
@@ -96,7 +94,6 @@ class DeviceManagerApp(tk.Tk):
             password = device['password'] if self.passwords_visible else '*' * len(device['password'])
             self.tree.item(self.tree.get_children()[i], values=(device['host'], device['device_type'], device['username'], password))
 
-    # Diğer metodlar aynı kalacak, sadece update_listbox metodunu update_treeview olarak değiştiriyoruz
     def update_treeview(self):
         for i in self.tree.get_children():
             self.tree.delete(i)
@@ -118,7 +115,7 @@ class DeviceManagerApp(tk.Tk):
 
     def add_device(self):
         dialog = AddDeviceDialog(self)
-        if dialog.result:  # Kullanıcı 'OK' tuşuna basarsa
+        if dialog.result:
             new_device = dialog.result
             if all(new_device.values()):  # Tüm değerler doluysa
                 self.devices.append(new_device)
@@ -130,7 +127,6 @@ class DeviceManagerApp(tk.Tk):
     def remove_device(self):
         selected_items = self.tree.selection()
         if selected_items:
-            # Seçilen öğeleri geçici bir listeye alma
             devices_to_remove = []
             for selected_item in selected_items:
                 device_host = self.tree.item(selected_item)['values'][0]  # Host değerini al
@@ -139,10 +135,8 @@ class DeviceManagerApp(tk.Tk):
                         devices_to_remove.append(device)
                         break
                     
-            # Geçici listedeki öğeleri self.devices listesinden ve Treeview'den silme
             for device in devices_to_remove:
                 self.devices.remove(device)
-                # Treeview'deki öğeyi bulma ve silme
                 for selected_item in selected_items:
                     if self.tree.item(selected_item)['values'][0] == device['host']:
                         self.tree.delete(selected_item)
