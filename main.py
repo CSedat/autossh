@@ -179,25 +179,6 @@ class DeviceManagerApp(tk.Tk):
             messagebox.showerror("Hata", "Geçersiz döngü süresi.")
             self.start_checking_button.config(state=tk.NORMAL, bg='green')  # Hata durumunda butonu tekrar etkinleştir
 
-
-    # def start_checking(self):
-    #     self.start_checking_button.config(state=tk.DISABLED, bg='grey')
-    #     interval_hours = self.interval_entry.get()
-    #     try:
-    #         interval_seconds = float(interval_hours) * 3600  # Saati saniyeye çevir
-    #     except ValueError:
-    #         messagebox.showerror("Hata", "Geçersiz döngü süresi.")
-    #         return
-
-    #     # Döngü süresini ve başlatıldı mesajını log ekranında göster
-    #     start_message = f"Döngü süresi {interval_hours} saat olarak ayarlandı. Cihaz bağlantıları başlatılıyor..."
-    #     self.log_message(start_message)
-    #     logging.info(start_message)
-
-    #     thread = threading.Thread(target=self.check_devices_periodically, args=(interval_seconds,), daemon=True)
-    #     thread.start()
-
-
     def check_devices_periodically(self, interval_seconds):
         while True:
             self.check_devices()
