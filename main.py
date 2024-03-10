@@ -5,7 +5,7 @@ import logging
 from netmiko import ConnectHandler
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 logging.basicConfig(filename='logging.log', level=logging.INFO, 
                     format='%(asctime)s:%(levelname)s:%(message)s')
@@ -47,7 +47,8 @@ class DeviceManagerApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title('Switch AutoSSH')
-        self.geometry('800x600')
+        self.geometry('1300x600')
+        self.is_checking = False
         
         self.log_text = scrolledtext.ScrolledText(self, state='disabled', height=10)
         self.log_text.pack(fill=tk.BOTH, expand=True, side=tk.BOTTOM)
@@ -80,6 +81,14 @@ class DeviceManagerApp(tk.Tk):
         
         self.start_checking_button = tk.Button(self, text="Başlat", command=self.start_checking, bg='green', activebackground='light green')
         self.start_checking_button.pack(side=tk.LEFT)
+        
+        self.progress_label = tk.Label(self, text="0/0 cihaz tamamlandı (%0)")
+        self.progress_label.pack(side=tk.LEFT)
+        self.progress = ttk.Progressbar(self, orient='horizontal', length=200, mode='determinate')
+        self.progress.pack(side=tk.LEFT)
+        
+        self.remaining_time_label = tk.Label(self, text="Bir sonraki kontrol: Bekleniyor...")
+        self.remaining_time_label.pack(side=tk.LEFT)
 
 
         self.passwords_visible = False
@@ -146,51 +155,81 @@ class DeviceManagerApp(tk.Tk):
         else:
             messagebox.showerror("Hata", "Bir switch seçilmedi.")
 
-
             
-    def log_message(self, message):
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        formatted_message = f"{current_time} - {message}"
-
-        self.log_text.configure(state='normal')
-        self.log_text.insert(tk.END, formatted_message + "\n")
-        self.log_text.configure(state='disabled')
-        self.log_text.yview(tk.END)
-        
     def start_checking(self):
         self.start_checking_button.config(state=tk.DISABLED, bg='grey')
         interval_hours = self.interval_entry.get()
+
         try:
             interval_seconds = float(interval_hours) * 3600
-            # Döngü süresini ve başlatıldı mesajını log ekranında göster
-            start_message = f"Döngü süresi {interval_hours} saat olarak ayarlandı. Cihaz bağlantıları başlatılıyor..."
-            self.log_message(start_message)
-            logging.info(start_message)
+            self.next_check_time = datetime.now() + timedelta(seconds=interval_seconds)
+            self.update_remaining_time()
 
+            # Arka plan işlemi için bir thread başlat
             thread = threading.Thread(target=self.check_devices_periodically, args=(interval_seconds,), daemon=True)
             thread.start()
+
+            # Start mesajı ve log
+            start_message = f"Döngü süresi {interval_hours} saat olarak ayarlandı. Cihaz bağlantıları başlatılıyor..."
+            self.log_message(start_message)
+
         except ValueError:
             messagebox.showerror("Hata", "Geçersiz döngü süresi.")
-            self.start_checking_button.config(state=tk.NORMAL, bg='green')  # Hata durumunda butonu tekrar etkinleştir
+            self.start_checking_button.config(state=tk.NORMAL, bg='green')
 
     def check_devices_periodically(self, interval_seconds):
-        while True:
-            self.check_devices()
-            time.sleep(interval_seconds)
+        # Arka planda çalışacak cihaz kontrolü
+        self.check_devices()
+        # next_check_time'ı güncelle
+        self.next_check_time = datetime.now() + timedelta(seconds=interval_seconds)
+        # Arka plan thread'i içinde after kullanmayın. Bunun yerine, arka plan işlemi tamamlandığında ana thread üzerinde tekrar başlatın.
+        self.after(1000, self.update_remaining_time)
+
+    def update_remaining_time(self):
+        now = datetime.now()
+        if now < self.next_check_time:
+            remaining_seconds = int((self.next_check_time - now).total_seconds())
+            self.remaining_time_label.config(text=f"Bir sonraki kontrol: {remaining_seconds} saniye sonra")
+            self.after(1000, self.update_remaining_time)
+        else:
+            self.remaining_time_label.config(text="Kontrol başlıyor...")
+            self.start_checking()  # Kontrol süresi geldiğinde tekrar başlat
 
     def check_devices(self):
-        for device in self.devices:
+        total_devices = len(self.devices)
+        completed_devices = 0
+
+        for index, device in enumerate(self.devices, start=1):
             message = f"{device['host']} cihazına bağlanılıyor..."
-            logging.info(message)
             self.log_message(message)
             try:
                 net_connect = ConnectHandler(**device)
                 net_connect.disconnect()
                 message = f"{device['host']} cihazına başarılı bir şekilde bağlanıldı."
+                completed_devices += 1
             except Exception as e:
                 message = f"{device['host']} cihazına bağlanırken hata oluştu: {str(e)}"
-            logging.info(message)
+                completed_devices += 1
+            finally:
+                self.update_progress(completed_devices, total_devices)
+    
+            self.after(0, self.update_progress, completed_devices, len(self.devices))
             self.log_message(message)
+
+    def update_progress(self, completed, total):
+        # İlerleme çubuğunu ve etiketi güncelle
+        self.progress['value'] = completed / total * 100
+        self.progress_label.config(text=f"{completed}/{total} cihaz tamamlandı (%{int((completed / total) * 100)})")
+        self.update_idletasks()  # GUI'yi güncelle
+
+    def log_message(self, message):
+        # Log mesajını ekleyin
+        current_time = datetime.now().strftime("%H:%M:%S %d-%m-%Y")
+        formatted_message = f"{current_time} - {message}"
+        self.log_text.configure(state='normal')
+        self.log_text.insert(tk.END, formatted_message + "\n")
+        self.log_text.configure(state='disabled')
+        self.log_text.yview(tk.END)
                 
 if __name__ == "__main__":
     app = DeviceManagerApp()
