@@ -165,11 +165,9 @@ class DeviceManagerApp(tk.Tk):
             self.next_check_time = datetime.now() + timedelta(seconds=interval_seconds)
             self.update_remaining_time()
 
-            # Arka plan işlemi için bir thread başlat
             thread = threading.Thread(target=self.check_devices_periodically, args=(interval_seconds,), daemon=True)
             thread.start()
 
-            # Start mesajı ve log
             start_message = f"Döngü süresi {interval_hours} saat olarak ayarlandı. Cihaz bağlantıları başlatılıyor..."
             self.log_message(start_message)
 
@@ -178,11 +176,8 @@ class DeviceManagerApp(tk.Tk):
             self.start_checking_button.config(state=tk.NORMAL, bg='green')
 
     def check_devices_periodically(self, interval_seconds):
-        # Arka planda çalışacak cihaz kontrolü
         self.check_devices()
-        # next_check_time'ı güncelle
         self.next_check_time = datetime.now() + timedelta(seconds=interval_seconds)
-        # Arka plan thread'i içinde after kullanmayın. Bunun yerine, arka plan işlemi tamamlandığında ana thread üzerinde tekrar başlatın.
         self.after(1000, self.update_remaining_time)
 
     def update_remaining_time(self):
@@ -193,7 +188,7 @@ class DeviceManagerApp(tk.Tk):
             self.after(1000, self.update_remaining_time)
         else:
             self.remaining_time_label.config(text="Kontrol başlıyor...")
-            self.start_checking()  # Kontrol süresi geldiğinde tekrar başlat
+            self.start_checking()
 
     def check_devices(self):
         total_devices = len(self.devices)
@@ -220,10 +215,9 @@ class DeviceManagerApp(tk.Tk):
         # İlerleme çubuğunu ve etiketi güncelle
         self.progress['value'] = completed / total * 100
         self.progress_label.config(text=f"{completed}/{total} cihaz tamamlandı (%{int((completed / total) * 100)})")
-        self.update_idletasks()  # GUI'yi güncelle
+        self.update_idletasks()  # GUI güncelle
 
     def log_message(self, message):
-        # Log mesajını ekleyin
         current_time = datetime.now().strftime("%H:%M:%S %d-%m-%Y")
         formatted_message = f"{current_time} - {message}"
         self.log_text.configure(state='normal')
